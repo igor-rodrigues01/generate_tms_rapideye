@@ -49,7 +49,7 @@ class MakeFootprint:
         f.close()
 
     @classmethod
-    def __shp_to_wkt(cls, shapefile_dir):
+    def shp_to_wkt(cls, shapefile_dir):
         """
         Method that get geometry from shp and write in wkt.
         """
@@ -65,9 +65,7 @@ class MakeFootprint:
         s = json.dumps(data['geometry'])
         g1 = geojson.loads(s)
         g2 = shape(g1)
-        # polygon = wkt.loads(g2.wkt)
-        # m_polygon = MultiPolygon([polygon])
-        cls.__write_file(g2.wkt, shapefile_dir)
+        return g2.wkt
 
     @classmethod
     def generate_footprint_wkt(cls, ds_path, shp_out_path):
@@ -76,10 +74,14 @@ class MakeFootprint:
         of the shp.
         """
         cls.footprint(ds_path, shp_out_path)
-        cls.__shp_to_wkt(shp_out_path)
+        footprint_geom_wkt = cls.shp_to_wkt(shp_out_path)
+        cls.__write_file(footprint_geom_wkt, shp_out_path)
 
 
 def make_params(args):
+    """
+    Method that will organize entry params
+    """
     data = {}
     for i in range(len(args)):
         if i == 0:  # saltando a primeira iteracao pra
@@ -105,10 +107,3 @@ if __name__ == '__main__':
         MakeFootprint.footprint(
             args['-imgIn'], args['-footOut']
         )
-
-# insert into ibama.img_catalogo_rapideye_a
-#     (gid, path, image, "data", tms, quicklook, geom, nuvens, total_part)
-# values(
-#    3, 'abc.com', 'img123', '2016-12-01', 'img.tms', 'qicklook',
-#    ST_GeomFromText('MULTIPOLYGON (((763500 8440500, 788500 8440500, 788500 8415500, 763500 8415500, 763500 8440500)))', 4674),
-#   1.5,1)

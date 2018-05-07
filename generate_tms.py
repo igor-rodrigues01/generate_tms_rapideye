@@ -2,8 +2,6 @@
 
 import os
 import sys
-import shutil
-import platform
 
 from landsat_processor.tiler import Tiler
 from distutils.sysconfig import get_config_vars
@@ -12,7 +10,11 @@ from distutils.sysconfig import get_config_vars
 - Instalar dans_gdal
 - gdal >= 2.0
 - python 3.5
-- verificar o EPSG da grade com o EPSG do imagem
+- Necessário que o ambiente virtual tenha python 2 para funcionamento do
+  gdal_tiler
+
+- Verificar o EPSG da grade com o EPSG do imagem
+- A composição antiga está para 3 5 2
 """
 
 
@@ -40,27 +42,6 @@ class GenerateTMS:
             sys.exit('Você não está em um ambiente virtual')
         return path_venv
 
-    @classmethod
-    def __copy_tiler_tools_to_virtualenv(cls):
-        """
-        Method that will try copy the tilers_tools directory
-        to plugin landsat_processor in the virtualenv.
-        """
-        tiler_tools_dir = 'tilers-tools'
-        python_version = 'python{}'.format(
-            platform.python_version()[:3]
-        )
-        path_venv = cls.__get_virtualenv_path()
-        path_distiny = os.path.join(
-            path_venv, 'lib', python_version, 'site-packages',
-            'landsat_processor', tiler_tools_dir
-        )
-        try:
-            if not os.path.exists(path_distiny):
-                shutil.copytree(tiler_tools_dir, path_distiny)
-                print('copy to {}'.format(path_distiny))
-        except Exception as exc:
-            sys.exit(MSG_ERROR_COPY_TILERS_TOOLS.format(exc))
 
     @classmethod
     def __make_rgb(
@@ -70,7 +51,9 @@ class GenerateTMS:
         """
         Method that make rgb composition and return the path from output image
         """
-        print('Fazendo composição rgb.')
+        print('Fazendo composição rgb. {} {} {}'.format(
+            num_band_red, num_band_green, num_band_blue
+        ))
         suffix_img_output = '_r{}g{}b{}.tif'.format(
             num_band_red, num_band_green, num_band_blue
         )
@@ -127,14 +110,13 @@ class GenerateTMS:
     @classmethod
     def main(
         cls, image_input, num_band_red, num_band_green, num_band_blue,
-        path_output, zoom_list, link_base='teste.com.br',
+        rgb_out, zoom_list, link_base='teste.com.br',
         output_folder='tms'
     ):
-        cls.__copy_tiler_tools_to_virtualenv()
         cls.__create_tms_dir(output_folder)
         image_rgb = cls.__make_rgb(
             image_input, num_band_red, num_band_green,
-            num_band_blue, path_output
+            num_band_blue, rgb_out
         )
         image_equalized = cls.__make_equalize(image_rgb, image_rgb)
         cls.__make_tms(image_equalized, link_base, zoom_list)
@@ -174,11 +156,11 @@ MSG_ERROR_PARAMS = "Entre com:" \
     "\n\t-br: \t\tNúmero da banda red" \
     "\n\t-bg: \t\tNúmero da banda green" \
     "\n\t-br: \t\tNúmero da banda blue" \
-    "\n\t-imgPathOut: \tPath imagem rgb saída" \
+    "\n\t-rgbPathOut: \tPath imagem rgb saída" \
     "\n\t-zoomMin: \tzoom Minimo " \
     "\n\t-zoomMax: \tzoom Máximo" \
     "\n\t-link: \t\tLink para tms" \
-    "\n\t-dirTms: \tdir tms" \
+    "\n\t-dirTms: \tPath do direttório do tms" \
     "\nExemplo:\n\n" \
     "  python generate_tms.py -imgPathIn ../path/img.tif -br 3"\
     " -bg 2 -bb 1 -imgPathOut ../teste -link teste.com -zoomMin 5"\
@@ -194,7 +176,7 @@ MSG_ERROR_COPY_TILERS_TOOLS = ' Error: {}\n\tVerifique se o diretório'\
 
 KEYS_DEFAULT_AS_SET = set(
     [
-        '-imgPathIn', '-br', '-bg', '-br', '-imgPathOut', '-zoomMin',
+        '-imgPathIn', '-br', '-bg', '-br', '-rgbPathOut', '-zoomMin',
         '-zoomMax', '-link', '-dirTms'
     ]
 )
@@ -210,5 +192,5 @@ if __name__ == '__main__':
 
     GenerateTMS.main(
         args['-imgPathIn'], args['-br'], args['-bg'], args['-bb'],
-        args['-imgPathOut'], zoom_list, args['-link'], args['-dirTms']
+        args['-rgbPathOut'], zoom_list, args['-link'], args['-dirTms']
     )
