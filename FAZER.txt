@@ -1,0 +1,3 @@
+- Converter o footprint de polygon para multipolygon e compara com a grade rapideye
+- Trocar as contra-barras da função __get_path por barra simples
+- Descobrir o porque do  _tms no final do exemplo em banco. função __get_xml_tms

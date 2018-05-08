@@ -5,8 +5,6 @@ import os
 import fiona
 import json
 import geojson
-# from shapely.geometry.multipolygon import MultiPolygon
-# from shapely import wkt
 from shapely.geometry import shape
 
 """
