@@ -1,15 +1,18 @@
 #!-*-cofding:utf-8-*-
 
 import os
+from log import Log
 
 
 class Utils:
 
-    FILENAME_WITH_ALL_RAPIDEYE = '../all_rapideye.txt'
-    TOTAL_PART = 1
+    __log = None
 
-    @classmethod
-    def make_params(cls, args):
+    def __init__(self):
+        self.__log = Log()
+
+    @staticmethod
+    def make_params(args):
         data = {}
         for i in range(len(args)):
             if i == 0:  # saltando a primeira iteracao pra
@@ -19,9 +22,8 @@ class Utils:
                 data[args[i]] = args[i + 1]
         return data
 
-    @classmethod
     def get_file(
-        cls, abspath_dir_img, is_metadata=False, is_tif=False
+        self, abspath_dir_img, is_metadata=False, is_tif=False
     ):
         """
         CRIAR ARQUIVO DE LOG E ADICINAR AS IMAGENS QUE ESTÃO SEM METADADOS
@@ -37,11 +39,14 @@ class Utils:
         if is_tif:
             file_result = '{}.tif'.format(img)
             if file_result not in all_files_current_dir:
-                print('O arquivo {} não existe'.format(file_result))
+                self.__log.error('O arquivo {} não existe'.format(file_result))
+                return False
 
         if is_metadata:
             file_result = '{}_metadata.xml'.format(img)
             if file_result not in all_files_current_dir:
-                print('O arquivo {} não existe'.format(file_result))
+                self.__log.error('O arquivo {} não existe'.format(file_result))
+                return False
 
         return os.path.join(abspath_dir_img, file_result)
+
