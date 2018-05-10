@@ -11,54 +11,48 @@ class Log:
     __logger_error = None
     __logger_info = None
 
-    def __init__(
-        self, dir_log='logs', filename_error_log='error',
-        filename_info_log='info'
-    ):
+    @classmethod
+    def __create_logdir_of_day(cls, now, dir_logs):
+        """
+        Method that create the directory to logs of day and return
+        """
         path = os.path.abspath(__file__)
         path_project = os.path.dirname(os.path.dirname(path))
-        now = datetime.now().strftime('%d-%m-%Y')
+        abspath_log_day = os.path.join(path_project, dir_logs, now)
 
-        self.__dir_log = os.path.join(path_project, dir_log)
-        self.__filename_error_log = '{}/{}.log'.format(now, filename_error_log)
-        self.__filename_info_log = '{}/{}.log'.format(now, filename_info_log)
-        self.__create_logdir_of_day(now)
-        self.__logger_info = self.__create_log(
-            self.__filename_info_log, 'info'
-        )
-        self.__logger_error = self.__create_log(
-            self.__filename_error_log, 'erro'
-        )
+        if not os.path.exists(abspath_log_day):
+            os.mkdir(abspath_log_day)
 
-    def __create_logdir_of_day(self, now):
-        """
-        Methode that create the directory to logs of day
-        """
-        dir_of_day = os.path.join(self.__dir_log, now)
-        if not os.path.exists(dir_of_day):
-            os.makedirs(dir_of_day)
+        return abspath_log_day
 
-    def __create_log(self, file_name, log):
+    @classmethod
+    def __create_file_log(cls, file_name, now, app_log, dir_logs='logs'):
         """
-        Function that create log file
+        Function that create log file inside direrctory log of day
         """
-        logger = logging.getLogger(log)
-        path_file_log = logging.FileHandler(
-            os.path.join(self.__dir_log, file_name)
-        )
-        formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-        path_file_log.setFormatter(formatter)
-        logger.addHandler(path_file_log)
-        logger.setLevel(logging.DEBUG)
+        log_day = os.path.join(cls.__create_logdir_of_day(now), file_name)
+
+        if not os.path.exists(log_day):
+            logger = logging.getLogger(app_log)
+            path_file_log = logging.FileHandler(
+                os.path.join(dir_logs, file_name)
+            )
+            formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+            path_file_log.setFormatter(formatter)
+            logger.addHandler(path_file_log)
+            logger.setLevel(logging.DEBUG)
         return logger
 
+    @classmethod
     def info(self, msg):
         """
         Function thar write in info log's file
         """
+        self.__create_logdir_of_day(now)
         print(msg)
         self.__logger_info.info(msg)
 
+    @classmethod
     def error(self, msg):
         """
         Function thar write in error log's file

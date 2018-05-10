@@ -6,6 +6,8 @@ import fiona
 import json
 import geojson
 from shapely.geometry import shape
+from osgeo import gdal
+
 
 """
  - gerar apenas footprint
@@ -16,6 +18,7 @@ from shapely.geometry import shape
 
 - FAZER VALIDAÇÃO DE PARAMETROS DE ENTRADA
 """
+from osgeo import gdal
 
 
 class MakeFootprint:
@@ -25,10 +28,13 @@ class MakeFootprint:
         """
         Method that create a shp with footprint based in gdal with vrt's.
         """
-        ds_vrt = ds_path.replace('.tif', '.vrt')
-        ds_vr2 = ds_vrt.replace(ds_vrt[:-4], '_2.vrt')
+        ds_reprojected = ds_path.replace('.tif', '_reprojected.tif')
+        gdal.Warp(ds_reprojected, ds_path, dstSRS='EPSG:4674')
+
+        ds_vrt = ds_reprojected.replace('.tif', '.vrt')
+        ds_vr2 = ds_reprojected.replace(ds_reprojected[:-4], '_2.vrt')
         # -a_srs EPSG:4674
-        command1 = "gdal_translate -b mask -of vrt -a_nodata 0 {} {}".format(ds_path, ds_vrt)
+        command1 = "gdal_translate -b mask -of vrt -a_nodata 0 {} {}".format(ds_reprojected, ds_vrt)
         command2 = "gdal_translate -b 1 -of vrt -a_nodata 0 {} {}".format(ds_vrt, ds_vr2)
         command3 = 'gdal_polygonize.py -q -8 {} -b 1 -f "ESRI Shapefile" {}'.format(ds_vr2, shp_out_path)
         os.system(command1)
@@ -36,6 +42,7 @@ class MakeFootprint:
         os.system(command3)
         os.remove(ds_vrt)
         os.remove(ds_vr2)
+        os.remove(ds_reprojected)
 
     @classmethod
     def __write_file(cls, content, filename='geo.wkt'):
@@ -57,6 +64,11 @@ class MakeFootprint:
         for file in files_shapefiledir:
             if file.endswith('.shp'):
                 shp = file
+
+        # shp = gdal.Open(os.path.join(shapefile_dir, shp))
+        # layer_in = shp.GetLayer()[0]
+        # geom = feature_in.GetGeometryRef()
+        # wkt = geom.ExportToWkt()
 
         shp = fiona.open(os.path.join(shapefile_dir, shp))
         data = shp.next()

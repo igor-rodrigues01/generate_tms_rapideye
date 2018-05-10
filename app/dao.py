@@ -2,6 +2,8 @@
 
 import psycopg2
 import sys
+from log2 import Log
+
 from constants import (
     HOSTADDR, USER, PASSWORD, DATABASE, SCHEMA, TABLENAME_RAPIDEYE_CATALOG
 )
@@ -60,11 +62,18 @@ class DAO:
 
         except Exception as ex:
             self.__conn.rollback()
-            print(ex)
+            Log.error(
+                '{}\nA imagem {} foi processada mas seus dados"\
+                " não foram inseridos no banco.'.format(
+                    ex, data_dict['path']
+                )
+            )
 
         else:
             self.__conn.commit()
-            print('Dados inseridos com sucesso')
+            Log.success('Sucesso: Imagem {} foi inserida com sucesso.'.format(
+                data_dict['path']
+            ))
 
 
 # insert into ibama.img_catalogo_rapideye_a

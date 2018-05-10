@@ -1,0 +1,22 @@
+<VRTDataset rasterXSize="5120" rasterYSize="4995">
+  <SRS>GEOGCS["SIRGAS 2000",DATUM["Sistema_de_Referencia_Geocentrico_para_las_AmericaS_2000",SPHEROID["GRS 1980",6378137,298.2572221010042,AUTHORITY["EPSG","7019"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY["EPSG","6674"]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433],AUTHORITY["EPSG","4674"]]</SRS>
+  <GeoTransform> -6.0337526344433222e+01,  4.5741272876572658e-05,  0.0000000000000000e+00, -1.4089076431198421e+01,  0.0000000000000000e+00, -4.5741272876572658e-05</GeoTransform>
+  <Metadata>
+    <MDI key="AREA_OR_POINT">Area</MDI>
+    <MDI key="TIFFTAG_IMAGEDESCRIPTION">REGPRO :Channel 1 from input/temp_folder/2032527_2032527_2014-0|REGPRO :Channel 2 from input/temp_folder/2032527_2032527_2014-0|REGPRO :Channel 3 from input/temp_folder/2032527_2032527_2014-0|REGPRO :Channel 4 from input/temp_folder/2032527_2032527_2014-0|REGPRO :Channel 5 from input/temp_folder/2032527_2032527_2014-0</MDI>
+  </Metadata>
+  <Metadata domain="IMAGE_STRUCTURE">
+    <MDI key="INTERLEAVE">PIXEL</MDI>
+  </Metadata>
+  <VRTRasterBand dataType="UInt16" band="1">
+    <NoDataValue>0</NoDataValue>
+    <ColorInterp>Gray</ColorInterp>
+    <SimpleSource>
+      <SourceFilename relativeToVRT="1">teste-foot</SourceFilename>
+      <SourceBand>1</SourceBand>
+      <SourceProperties RasterXSize="5120" RasterYSize="4995" DataType="UInt16" BlockXSize="5120" BlockYSize="1" />
+      <SrcRect xOff="0" yOff="0" xSize="5120" ySize="4995" />
+      <DstRect xOff="0" yOff="0" xSize="5120" ySize="4995" />
+    </SimpleSource>
+  </VRTRasterBand>
+</VRTDataset>

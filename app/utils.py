@@ -1,15 +1,9 @@
 #!-*-cofding:utf-8-*-
 
 import os
-from log import Log
 
 
 class Utils:
-
-    __log = None
-
-    def __init__(self):
-        self.__log = Log()
 
     @staticmethod
     def make_params(args):
@@ -22,8 +16,9 @@ class Utils:
                 data[args[i]] = args[i + 1]
         return data
 
+    @classmethod
     def get_file(
-        self, abspath_dir_img, is_metadata=False, is_tif=False
+        cls, abspath_dir_img, is_metadata=False, is_tif=False
     ):
         """
         CRIAR ARQUIVO DE LOG E ADICINAR AS IMAGENS QUE ESTÃO SEM METADADOS
@@ -39,14 +34,11 @@ class Utils:
         if is_tif:
             file_result = '{}.tif'.format(img)
             if file_result not in all_files_current_dir:
-                self.__log.error('O arquivo {} não existe'.format(file_result))
                 return False
 
         if is_metadata:
             file_result = '{}_metadata.xml'.format(img)
             if file_result not in all_files_current_dir:
-                self.__log.error('O arquivo {} não existe'.format(file_result))
                 return False
 
         return os.path.join(abspath_dir_img, file_result)
-
