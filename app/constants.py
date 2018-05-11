@@ -15,7 +15,8 @@
 # BAND_B = 2
 
 TOTAL_PART = 1
-FILENAME_WITH_ALL_RAPIDEYE = "/home/igor/projects/new-tms-rapideye/generate_tms_rapideye/processing_re/all_rapideye.txt"
+FILE_ALL_RAPIDEYE = "/home/igor/projects/new-tms-rapideye/generate_lote/all_rapideye.txt"
+OUTSIZE_RGB = 10
 
 # CONNECTION DATA
 HOSTADDR = '127.0.0.1'
@@ -35,4 +36,3 @@ ZOOM_MAX = 15
 BAND_R = 3
 BAND_G = 5
 BAND_B = 2
-OUTSIZE_RGB = 10

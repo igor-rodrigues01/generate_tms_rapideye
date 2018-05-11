@@ -8,17 +8,13 @@ import geojson
 from shapely.geometry import shape
 from osgeo import gdal
 
-
 """
- - gerar apenas footprint
- python footprint.py -imgIn 2032526_2014-07-31_RE4_3A_315082_CR_r3g2b1.tif -footOut myfoot
+- gerar apenas footprint
+python footprint.py -imgIn 2032526_2014-07-31_RE4_3A_315082_CR_r3g2b1.tif -footOut myfoot
 
- - gerar footprint e wkt
- python footprint.py -imgIn 2032526_2014-07-31_RE4_3A_315082_CR_r3g2b1.tif -footOut myfoot -wkt 1
-
-- FAZER VALIDAÇÃO DE PARAMETROS DE ENTRADA
+- gerar footprint e wkt
+python footprint.py -imgIn 2032526_2014-07-31_RE4_3A_315082_CR_r3g2b1.tif -footOut myfoot -wkt 1
 """
-from osgeo import gdal
 
 
 class MakeFootprint:
@@ -84,26 +80,42 @@ class MakeFootprint:
         cls.__write_file(footprint_geom_wkt, shp_out_path)
 
 
-def make_params(args):
+def validate_params(args):
     """
-    Method that will organize entry params
+    Method that will organize entry params in key and value
     """
     data = {}
+
+    if len(args) > 7:
+        sys.exit(MSG_ERROR)
+
+    elif len(args) % 2 == 0:
+        sys.exit(MSG_ERROR)
+
+    elif len(args) < 5:
+        sys.exit(MSG_ERROR)
+
     for i in range(len(args)):
-        if i == 0:  # saltando a primeira iteracao pra
-            # saltar o parametro que é o nome do arquivo de execução
-            continue
+        if i == 0:  # jumping the first interaction to the omit
+            continue  # the filename footprint.py
         if not i % 2 == 0:
             data[args[i]] = args[i + 1]
+
+    if '-footOut' not in data.keys() or '-imgIn' not in data.keys():
+        sys.exit('Verifique se os parâmetros passados estão corretos!')
+
     return data
+
+
+MSG_ERROR = 'Entre com a imagem de entrada e o shp de saída. Ex:\n' \
+    'python3 footprint.py -imgIn img.tif -footOut myfoot \nou\n' \
+    'python3 footprint.py -imgIn img.tif -footOut myfoot -wkt 1'
 
 
 if __name__ == '__main__':
     args = sys.argv
-    # if args > 6:
-    #     sys.exit('entre com a imagem de entrada e o shp de saída')
+    args = validate_params(args)
 
-    args = make_params(args)
     if '-wkt' in args.keys():
         MakeFootprint.generate_footprint_wkt(
             args['-imgIn'], args['-footOut']

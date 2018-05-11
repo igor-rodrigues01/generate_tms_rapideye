@@ -4,18 +4,6 @@ import os
 import sys
 
 from landsat_processor.tiler import Tiler
-from distutils.sysconfig import get_config_vars
-
-"""
-- Instalar dans_gdal
-- gdal >= 2.0
-- python 3.5
-- Necessário que o ambiente virtual tenha python 2 para funcionamento do
-  gdal_tiler
-
-- Verificar o EPSG da grade com o EPSG do imagem
-- A composição antiga está para 3 5 2
-"""
 
 
 class GenerateTMS:
@@ -30,18 +18,6 @@ class GenerateTMS:
         cls.__dir_tms = dir_tms
         if not os.path.exists(cls.__dir_tms):
             os.mkdir(dir_tms)
-
-    @classmethod
-    def __get_virtualenv_path(cls):
-        """
-        Method that return the current path of the virtualenv
-        """
-        path_venv = get_config_vars()['exec_prefix']
-        if hasattr(sys, 'real_prefix') is False or \
-           path_venv.startswith(sys.real_prefix):
-            sys.exit('Você não está em um ambiente virtual')
-        return path_venv
-
 
     @classmethod
     def __make_rgb(
@@ -157,21 +133,14 @@ MSG_ERROR_PARAMS = "Entre com:" \
     "\n\t-bg: \t\tNúmero da banda green" \
     "\n\t-br: \t\tNúmero da banda blue" \
     "\n\t-rgbPathOut: \tPath imagem rgb saída" \
-    "\n\t-zoomMin: \tzoom Minimo " \
+    "\n\t-zoomMin: \tzoom Mínimo " \
     "\n\t-zoomMax: \tzoom Máximo" \
-    "\n\t-link: \t\tLink para tms" \
+    "\n\t-link: \t\tLink para tms (Caminho até o imagem.tms)" \
     "\n\t-dirTms: \tPath do direttório do tms" \
     "\nExemplo:\n\n" \
     "  python generate_tms.py -imgPathIn ../path/img.tif -br 3"\
     " -bg 2 -bb 1 -imgPathOut ../teste -link teste.com -zoomMin 5"\
     " -zoomMax 8 -dirTms ./tms-teste" \
-
-
-MSG_ERROR_COPY_TILERS_TOOLS = ' Error: {}\n\tVerifique se o diretório'\
-    ' tilers-tools existe no pluguin landsat_processor de seu ambiente'\
-    ' virtual.\n Exemplo:\n\tcp -r tilers-tools/ ~/.virtualenvs/<nome '\
-    'ambiente virtual>/lib/<versão do python usada no ambiente (python3.5)'\
-    '>/site-packages/landsat_processor/ '
 
 
 KEYS_DEFAULT_AS_SET = set(

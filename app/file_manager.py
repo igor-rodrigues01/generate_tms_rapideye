@@ -3,7 +3,6 @@ import os
 import sys
 import xmltodict
 import shutil
-import random
 
 from footprint import MakeFootprint
 from generate_tms import GenerateTMS
@@ -12,7 +11,7 @@ from shapely import wkt
 from utils import Utils
 from log import Log
 from constants import (
-    OUTSIZE_RGB, FILENAME_WITH_ALL_RAPIDEYE, TOTAL_PART, BAND_R, BAND_G,
+    OUTSIZE_RGB, FILE_ALL_RAPIDEYE, TOTAL_PART, BAND_R, BAND_G,
     BAND_B, DIR_PNG, DIR_TMS, DIR_RGB, ZOOM_MIN, ZOOM_MAX, URL_TMS, B52_PATH
 )
 from dao import DAO
@@ -157,7 +156,7 @@ class FileManager:
         database. after get the necessary datas, this datas will to pass to DAO
         to make insertion in the database.
         """
-        all_rapideye = open(FILENAME_WITH_ALL_RAPIDEYE, 'r')
+        all_rapideye = open(FILE_ALL_RAPIDEYE, 'r')
 
         for img_name in all_rapideye.readlines():
             path_dir_img = os.path.join(path_4a_cobertura, img_name.strip('\n'))
