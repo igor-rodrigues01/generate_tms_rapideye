@@ -3,18 +3,17 @@ import os
 import sys
 import xmltodict
 import shutil
-import socket
-
+import random
 
 from footprint import MakeFootprint
 from generate_tms import GenerateTMS
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely import wkt
 from utils import Utils
-from log2 import Log
+from log import Log
 from constants import (
     OUTSIZE_RGB, FILENAME_WITH_ALL_RAPIDEYE, TOTAL_PART, BAND_R, BAND_G,
-    BAND_B, DIR_TMS, DIR_RGB, ZOOM_MIN, ZOOM_MAX, URL_TMS, DIR_TMS
+    BAND_B, DIR_PNG, DIR_TMS, DIR_RGB, ZOOM_MIN, ZOOM_MAX, URL_TMS, B52_PATH
 )
 from dao import DAO
 
@@ -35,13 +34,13 @@ class FileManager:
 
         if tif is False:
             Log.error(
-                'O diretório {} está sem .tif'.format(abspath_image)
+                'O diretório {} está sem .tif.'.format(abspath_image)
             )
             return False
 
         if metadata is False:
             Log.error(
-                'O diretório {} está sem metadados'.format(abspath_image)
+                'O diretório {} está sem metadados.'.format(abspath_image)
             )
             return False
 
@@ -68,152 +67,123 @@ class FileManager:
         return cloud_percentage
 
     def __make_footprint(self, abspath_dir_img, shp_out='teste-foot'):
-        """
-        Method that create the footprint from tif
-        """
+        """Method that create the footprint from tif"""
         tif = Utils.get_file(abspath_dir_img, is_tif=True)
-        print('\nFazendo footprint.\n')
+        print('\nGerando footprint.\n')
         MakeFootprint.footprint(tif, shp_out)
-        print('\nRemovendo shp do footprint.\n')
+        print('\nRemovendo shapefile do footprint.\n')
         poly = MakeFootprint.shp_to_wkt(shp_out)
         poly = wkt.loads(poly)
         multipoly = MultiPolygon([poly])
         shutil.rmtree(shp_out)
         return multipoly.wkt
 
-    def __make_tms(
-        self, abspath_dir_img, num_br, num_bg, num_bb, dir_rgb, out_dir
-    ):
-        """
-        Method that start tms generation
-        """
-        """
-        ESTÁ SENDO INSERIDO // NO LINK
-        """
+    def __make_tms(self, abspath_dir_img):
+        """Method that start tms generation."""
         zoom_list = [ZOOM_MIN, ZOOM_MAX]
         tif = Utils.get_file(abspath_dir_img, is_tif=True)
         GenerateTMS.main(
-            tif, num_br, num_bg, num_bb, dir_rgb, zoom_list, URL_TMS, out_dir
+            tif, BAND_R, BAND_G, BAND_B, DIR_RGB, zoom_list, URL_TMS, DIR_TMS
         )
 
-    # CORRIGIR
-    def __get_xml_tms(self, image_name, num_br, num_bg, num_bb, path_all_tms):
-        # tms = "http://10.1.25.66/imagens/tms/rapideye/2328613_2011-09-20T140632_RE1_3A-NAC_10911835_148037_CR_r3g5b2_tms.xml"
-        abs_path_tms = os.path.abspath(path_all_tms)
-        http = 'http:'
-        ip_current = socket.gethostbyname(socket.gethostname())
-        img_rgb = '{}_r{}g{}b{}.xml'.format(
-            image_name, num_br, num_bg, num_bb
-        )
-        path_img_rgb = os.path.join(abs_path_tms, img_rgb)
-        return '{}//{}{}'.format(http, ip_current, path_img_rgb)
+    def __get_xml_tms(self, image_name):
+        """Method that get the xml file from TMS generated"""
+        suffix_extension_tif = Utils.get_suffix_tif(image_name)
+        img_rgb_xml = image_name.replace(suffix_extension_tif, '.xml')
+        return os.path.join(URL_TMS, img_rgb_xml)
 
-    def __get_image_rgb(self, image_name, num_br, num_bg, num_bb, dir_rgb):
+    def __get_image_rgb(self, image_name):
         """
-        Method that get image name from rgb image to add in the database
+        Method that get image name from RGB image to add in the database.
         """
-        """
-        ESTÁ INDO O TIFF TAMBÉM
-        """
-        # image = "2328613_2011-09-20T140632_RE1_3A-NAC_10911835_148037_CR_r3g5b2.tif"
-        sufix_rgb = '_r{}g{}b{}.tif'.format(
-            num_br, num_bg, num_bb
-        )
+        sufix_rgb = '_r{}g{}b{}.tif'.format(BAND_R, BAND_G, BAND_B)
         image_name += sufix_rgb
-        abspath_image = os.path.abspath(os.path.join(dir_rgb, image_name))
+        abspath_image = os.path.abspath(os.path.join(DIR_RGB, image_name))
         if os.path.exists(abspath_image):
             return abspath_image, image_name
         else:
-            print('Image {} não encontrada'.format(image_name))
+            print('Imagem {} não encontrada'.format(image_name))
 
-    def __get_path(self, abspath_dir_img):
-        # path = "\\10.1.25.66\b52_imagens\rapideye\2328613_2011-09-20T140632_RE1_3A-NAC_10911835_148037_CR"
-        """
-        Method that return path to directory of the images
-        """
-        ip_current = socket.gethostbyname(socket.gethostname())
-        abspath_dir_img = abspath_dir_img.replace('/', "\\")
-        return '\\\\{}{}'.format(ip_current, abspath_dir_img)
+    def __get_path(self, img_name):
+        """Method that return path to directory of the images on b52."""
+        return '{}{}'.format(B52_PATH, img_name)
 
     def __make_png(self, abspath_img_rgb):
-        """
-        Function that create png image from rgb
-        """
-        # quicklook = "http://10.1.25.66/imagens/png/rapideye/2328613_2014-02-10T140451_RE3_3A-NAC_18111582_241547_CR_r3g5b2.png"
+        """Method that create png image from RGB."""
+        if not os.path.exists(DIR_PNG):
+            os.makedirs(DIR_PNG)
+
         outsize = '{}%'.format(OUTSIZE_RGB)
-        abspath_img_png = abspath_img_rgb.replace('.tif', '.png')
+        img_name_rgb = os.path.basename(abspath_img_rgb)
+        suffix_extension_tif = Utils.get_suffix_tif(img_name_rgb)
+        img_png = img_name_rgb.replace(suffix_extension_tif, '.png')
+        path_img_png = os.path.join(DIR_PNG, img_png)
 
         command = "gdal_translate -ot byte -of PNG -outsize {} {} " \
             "-a_nodata 0 -q  {} {}".format(
-                outsize, outsize, abspath_img_rgb, abspath_img_png
+                outsize, outsize, abspath_img_rgb, path_img_png
             )
         os.system(command)
-        return abspath_img_png
+        return path_img_png
 
     def __get_date(self, abspath_dir_img):
+        """Method that get the date from name of the image.tif."""
         img_name = os.path.basename(abspath_dir_img)
         return img_name.split('_')[1]
 
-    def __make_processing(
-        self, img_name, num_br, num_bg, num_bb, dir_rgb, abspath_dir_img, dir_tms
-    ):
-        import random
-
+    def __make_processing(self, img_name, abspath_dir_img):
+        """
+        Method that call other methods to perform all the necessary
+        processings in the imagery.
+        """
         data = {}
-        data['gid'] = random.randint(0, 10000)
         data['data'] = self.__get_date(abspath_dir_img)
-
         data['total_part'] = TOTAL_PART
         data['nuvens'] = self.get_cloud(abspath_dir_img)
-        self.__make_tms(
-            abspath_dir_img, num_br, num_bg, num_bb, dir_rgb, dir_tms
-        )
+        self.__make_tms(abspath_dir_img)
         data['geom'] = self.__make_footprint(abspath_dir_img)
-        data['tms'] = self.__get_xml_tms(
-            img_name, num_br, num_bg, num_bb, dir_tms
-        )
-        abspath_rgb, img_name_rgb = self.__get_image_rgb(
-            img_name, num_br, num_bg, num_bb, dir_rgb
-        )
+        abspath_rgb, img_name_rgb = self.__get_image_rgb(img_name)
+        data['tms'] = self.__get_xml_tms(img_name_rgb)
         data['image'] = img_name_rgb
         data['quicklook'] = self.__make_png(abspath_rgb)
-        data['path'] = self.__get_path(abspath_dir_img)
+        data['path'] = self.__get_path(img_name)
         return data
 
-    def main(
-        self, path_4a_cobertura, num_br, num_bg, num_bb, dir_rgb, dir_tms
-    ):
+    def main(self, path_4a_cobertura):
+        """
+        This is main method that will iterate in the file with all the names of
+        the rapideye (all_rapideye.txt) imagery and will call the processing
+        method to make all te processing and to return the data to insert in
+        database. after get the necessary datas, this datas will to pass to DAO
+        to make insertion in the database.
+        """
         all_rapideye = open(FILENAME_WITH_ALL_RAPIDEYE, 'r')
-        i = 0
 
         for img_name in all_rapideye.readlines():
-            path_dir_img = os.path.join(path_4a_cobertura, img_name)
-            abspath_dir_img = os.path.abspath(path_dir_img.strip('\n'))
-            i += 1
+            path_dir_img = os.path.join(path_4a_cobertura, img_name.strip('\n'))
+
+            if not os.path.exists(path_dir_img):
+                Log.error(' O diretório {} não existe.'.format(path_dir_img))
+                continue
+
+            abspath_dir_img = os.path.abspath(path_dir_img)
 
             if self.__check_tif_and_metadata(abspath_dir_img):
                 data = self.__make_processing(
-                    img_name.strip('\n'), num_br, num_bg,
-                    num_bb, dir_rgb, abspath_dir_img, dir_tms
+                    img_name.strip('\n'), abspath_dir_img,
                 )
                 self.__dao.insert_catalog_rapideye(data)
-
-                if i > 1:
-                    break
 
 
 if __name__ == '__main__':
     args = sys.argv
-    args = Utils.make_params(args)
     process = FileManager()
-
+    if len(args) != 2:
+        sys.exit(
+            'Execute o script passando o apenas caminho do diretório de'
+            ' imagens da 4ª cobertura'
+        )
     if not os.path.exists(DIR_RGB):
         os.mkdir(DIR_RGB)
 
-    process.main(
-        args['-imgPathIn'], BAND_R, BAND_G, BAND_B,
-        DIR_RGB, DIR_TMS
-    )
-
-# args['-imgPathIn'], args['-br'], args['-bg'], args['-bb'],
-# args['-imgPathOut'], zoom_list, args['-link'], args['-outDirTms']
+    process.main(args[1])

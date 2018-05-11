@@ -7,6 +7,7 @@ class Utils:
 
     @staticmethod
     def make_params(args):
+        """Method that reorganize the entry params of command line"""
         data = {}
         for i in range(len(args)):
             if i == 0:  # saltando a primeira iteracao pra
@@ -16,13 +17,24 @@ class Utils:
                 data[args[i]] = args[i + 1]
         return data
 
+    @staticmethod
+    def get_suffix_tif(img):
+        """Method that return the correct suffix of the a image."""
+        if img.endswith('.tif'):
+            return '.tif'
+        elif img.endswith('.tiff'):
+            return '.tiff'
+        elif img.endswith('.TIF'):
+            return '.TIF'
+        else:
+            return '.TIFF'
+
     @classmethod
     def get_file(
         cls, abspath_dir_img, is_metadata=False, is_tif=False
     ):
         """
-        CRIAR ARQUIVO DE LOG E ADICINAR AS IMAGENS QUE ESTÃO SEM METADADOS
-        E SEM TIF
+        Method that return the metadata or .tig from images
         """
         img = os.path.basename(abspath_dir_img)
         all_files_current_dir = os.listdir(abspath_dir_img)

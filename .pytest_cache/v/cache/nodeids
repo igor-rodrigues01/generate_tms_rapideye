@@ -1,3 +1,4 @@
 [
-  "tests/test_dao.py::test_insert"
+  "tests/test_dao.py::test_insert",
+  "tests/test_dao.py::test_check_db_by_select"
 ]

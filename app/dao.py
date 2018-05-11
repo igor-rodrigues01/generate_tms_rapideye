@@ -1,9 +1,8 @@
 #!-*-coding:utf-8-*-
-
-import psycopg2
 import sys
-from log2 import Log
+import psycopg2
 
+from log import Log
 from constants import (
     HOSTADDR, USER, PASSWORD, DATABASE, SCHEMA, TABLENAME_RAPIDEYE_CATALOG
 )
@@ -36,14 +35,13 @@ class DAO:
         """
         Method that create sql to insertion
         """
-        # import pdb; pdb.set_trace()
         # sql only with fields
-        sql_fields = "INSERT INTO {}.{} (gid, path, image, data, tms,"\
+        sql_fields = "INSERT INTO {}.{} (path, image, data, tms,"\
             " quicklook, geom, nuvens, total_part)".format(
                 SCHEMA, TABLENAME_RAPIDEYE_CATALOG
             )
         # sql only with values
-        sql_values = " VALUES ({gid},'{path}','{image}','{data}','{tms}',"\
+        sql_values = " VALUES ('{path}','{image}','{data}','{tms}',"\
             "'{quicklook}', ST_GeomFromText('{geom}', 4674),{nuvens},"\
             " {total_part})".format(**data_dict)
 
@@ -68,17 +66,8 @@ class DAO:
                     ex, data_dict['path']
                 )
             )
-
         else:
             self.__conn.commit()
-            Log.success('Sucesso: Imagem {} foi inserida com sucesso.'.format(
+            Log.success('Imagem {} foi inserida com sucesso.'.format(
                 data_dict['path']
             ))
-
-
-# insert into ibama.img_catalogo_rapideye_a
-#     (gid, path, image, "data", tms, quicklook, geom, nuvens, total_part)
-# values(
-#    3, 'abc.com', 'img123', '2016-12-01', 'img.tms', 'qicklook',
-#    ST_GeomFromText('MULTIPOLYGON (((763500 8440500, 788500 8440500, 788500 8415500, 763500 8415500, 763500 8440500)))', 4674),
-#   1.5,1)

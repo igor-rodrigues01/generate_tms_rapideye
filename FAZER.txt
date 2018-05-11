@@ -1,7 +1,0 @@
-ok - Converter o footprint de polygon para multipolygon e comparar com a grade rapideye
-- Trocar as contra-barras da função __get_path por barra simples
-- Descobrir o porque do  _tms no final do exemplo em banco. função __get_xml_tms
-
-- conserttar url tms (url dinâmica para url estática)
-- REMOVER O RANDOM DO GID 
-- REMOVER O TIF DE DENTRO DO DIRETÓRIO DE PNG

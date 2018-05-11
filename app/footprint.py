@@ -28,6 +28,7 @@ class MakeFootprint:
         """
         Method that create a shp with footprint based in gdal with vrt's.
         """
+        # Creating a dataset reprojected to 4674
         ds_reprojected = ds_path.replace('.tif', '_reprojected.tif')
         gdal.Warp(ds_reprojected, ds_path, dstSRS='EPSG:4674')
 
@@ -64,11 +65,6 @@ class MakeFootprint:
         for file in files_shapefiledir:
             if file.endswith('.shp'):
                 shp = file
-
-        # shp = gdal.Open(os.path.join(shapefile_dir, shp))
-        # layer_in = shp.GetLayer()[0]
-        # geom = feature_in.GetGeometryRef()
-        # wkt = geom.ExportToWkt()
 
         shp = fiona.open(os.path.join(shapefile_dir, shp))
         data = shp.next()
