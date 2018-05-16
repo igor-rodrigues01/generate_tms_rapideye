@@ -1,6 +1,16 @@
 #!-*-cofding:utf-8-*-
 
 import os
+import shutil
+from log import Log
+import sys
+
+
+KEYS_DEFAULT_AS_SET = set(
+    [
+        '-dirImgs', '-oneImg', '-move'
+    ]
+)
 
 
 class Utils:
@@ -54,3 +64,58 @@ class Utils:
                 return False
 
         return os.path.join(abspath_dir_img, file_result)
+
+    @classmethod
+    def move_dir(cls, abspath_src, abspath_destiny):
+        """
+        Method that will move the image to a destiny directory
+        """
+        print('Movendo imagem: {} \npara: {}'.format(
+            abspath_src, abspath_destiny
+        ))
+        img_name = os.path.basename(abspath_src.rstrip('/'))
+        try:
+            shutil.move(
+                abspath_src, os.path.join(abspath_destiny, img_name)
+            )
+        except Exception as ex:
+            Log.error('Erro ao mover a imagem de {} para {}\n{}'.format(
+                abspath_src, abspath_destiny, ex
+            ))
+
+    @classmethod
+    def check_args(cls, args_dict):
+        process_one_img = False
+        move_img = False
+
+        if '-dirImgs' in args_dict.keys():
+            if not os.path.exists(args_dict['-dirImgs']):
+                sys.exit('O diretório {} não existe'.format(
+                    args_dict['-dirImgs']
+                ))
+        else:
+            sys.exit('O parâmetro -dirImgs não existe')
+
+        if '-move' in args_dict.keys():
+            if args_dict['-move'] != '1':
+                sys.exit('O valor do parâmetro -move deve ser 1')
+            move_img = True
+
+        if '-oneImg' in args_dict.keys():
+            if args_dict['-oneImg'] != '1':
+                sys.exit('O valor do parâmetro -oneImg deve ser 1')
+            process_one_img = True
+
+        return args_dict, move_img, process_one_img
+
+    @classmethod
+    def validate_params(cls, args):
+        if not (len(args) == 3 or len(args) == 5 or len(args) == 7):
+            sys.exit(
+                'Execute o script passando o caminho do diretório de'
+                ' imagens da 4ª cobertura , ou apenas o path de um'
+                'imagem o decidindo se deseja mover ou não'
+            )
+
+        args_dict = Utils.make_params(args)
+        return cls.check_args(args_dict)

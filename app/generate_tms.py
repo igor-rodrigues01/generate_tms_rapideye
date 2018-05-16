@@ -121,7 +121,7 @@ class ParamsController:
         keys_args_as_set = set(args.keys())
 
         if KEYS_DEFAULT_AS_SET.difference(keys_args_as_set) != set():
-            sys.exit('Paramentros errados.')
+            sys.exit('Parâmetros errados.')
 
         zoom_list = [int(args['-zoomMin']), int(args['-zoomMax'])]
         return args, zoom_list
@@ -158,6 +158,9 @@ if __name__ == '__main__':
 
     # validate params or if necessary stop the script
     args, zoom_list = ParamsController.validate_params(args)
+
+    if not os.path.exists(args['-rgbPathOut']):
+        os.makedirs(args['-rgbPathOut'])
 
     GenerateTMS.main(
         args['-imgPathIn'], args['-br'], args['-bg'], args['-bb'],

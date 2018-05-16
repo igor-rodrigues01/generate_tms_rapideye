@@ -12,7 +12,8 @@ from utils import Utils
 from log import Log
 from constants import (
     OUTSIZE_RGB, FILE_ALL_RAPIDEYE, TOTAL_PART, BAND_R, BAND_G,
-    BAND_B, DIR_PNG, DIR_TMS, DIR_RGB, ZOOM_MIN, ZOOM_MAX, URL_TMS, B52_PATH
+    BAND_B, DIR_PNG, DIR_TMS, ZOOM_MIN, ZOOM_MAX, URL_TMS, B52_PATH,
+    DESTINY_RAPIDEYE
 )
 from dao import DAO
 
@@ -82,7 +83,8 @@ class FileManager:
         zoom_list = [ZOOM_MIN, ZOOM_MAX]
         tif = Utils.get_file(abspath_dir_img, is_tif=True)
         GenerateTMS.main(
-            tif, BAND_R, BAND_G, BAND_B, DIR_RGB, zoom_list, URL_TMS, DIR_TMS
+            tif, BAND_R, BAND_G, BAND_B, abspath_dir_img, zoom_list,
+            URL_TMS, DIR_TMS
         )
 
     def __get_xml_tms(self, image_name):
@@ -91,13 +93,13 @@ class FileManager:
         img_rgb_xml = image_name.replace(suffix_extension_tif, '.xml')
         return os.path.join(URL_TMS, img_rgb_xml)
 
-    def __get_image_rgb(self, image_name):
+    def __get_image_rgb(self, abspath_dir_img, image_name):
         """
         Method that get image name from RGB image to add in the database.
         """
         sufix_rgb = '_r{}g{}b{}.tif'.format(BAND_R, BAND_G, BAND_B)
         image_name += sufix_rgb
-        abspath_image = os.path.abspath(os.path.join(DIR_RGB, image_name))
+        abspath_image = os.path.join(abspath_dir_img, image_name)
         if os.path.exists(abspath_image):
             return abspath_image, image_name
         else:
@@ -126,7 +128,9 @@ class FileManager:
         return path_img_png
 
     def __get_date(self, abspath_dir_img):
-        """Method that get the date from name of the image.tif."""
+        """
+        Method that get the date from name of the image.tif.
+        """
         img_name = os.path.basename(abspath_dir_img)
         return img_name.split('_')[1]
 
@@ -141,26 +145,45 @@ class FileManager:
         data['nuvens'] = self.get_cloud(abspath_dir_img)
         self.__make_tms(abspath_dir_img)
         data['geom'] = self.__make_footprint(abspath_dir_img)
-        abspath_rgb, img_name_rgb = self.__get_image_rgb(img_name)
+        abspath_rgb, img_name_rgb = self.__get_image_rgb(
+            abspath_dir_img, img_name
+        )
         data['tms'] = self.__get_xml_tms(img_name_rgb)
         data['image'] = img_name_rgb
         data['quicklook'] = self.__make_png(abspath_rgb)
         data['path'] = self.__get_path(img_name)
         return data
 
-    def main(self, path_4a_cobertura):
+    def make_processing_one_image(self, abspath_image, move_img_bool):
+        """
+        Method that make the processing in one image
+        """
+        abspath_image = abspath_image.rstrip('/')
+        img_name = os.path.basename(abspath_image)
+
+        if self.__check_tif_and_metadata(abspath_image):
+            data = self.__make_processing(img_name, abspath_image)
+            self.__dao.insert_catalog_rapideye(data)
+        else:
+            sys.exit()
+
+        if move_img_bool:
+            Utils.move_dir(abspath_image, DESTINY_RAPIDEYE)
+
+    def main(self, path_4a_cobertura, move_img_bool):
         """
         This is main method that will iterate in the file with all the names of
         the rapideye (all_rapideye.txt) imagery and will call the processing
-        method to make all te processing and to return the data to insert in
+        method to make all the processing and to return the data to insert in
         database. after get the necessary datas, this datas will to pass to DAO
         to make insertion in the database.
         """
         all_rapideye = open(FILE_ALL_RAPIDEYE, 'r')
 
         for img_name in all_rapideye.readlines():
-            path_dir_img = os.path.join(path_4a_cobertura, img_name.strip('\n'))
-
+            path_dir_img = os.path.join(
+                path_4a_cobertura, img_name.strip('\n')
+            )
             if not os.path.exists(path_dir_img):
                 Log.error(' O diretório {} não existe.'.format(path_dir_img))
                 continue
@@ -173,16 +196,22 @@ class FileManager:
                 )
                 self.__dao.insert_catalog_rapideye(data)
 
+                if move_img_bool:
+                    Utils.move_dir(abspath_dir_img, DESTINY_RAPIDEYE)
+
 
 if __name__ == '__main__':
-    args = sys.argv
     process = FileManager()
-    if len(args) != 2:
-        sys.exit(
-            'Execute o script passando o apenas caminho do diretório de'
-            ' imagens da 4ª cobertura'
-        )
-    if not os.path.exists(DIR_RGB):
-        os.mkdir(DIR_RGB)
 
-    process.main(args[1])
+    args_dict, move_img_bool, process_one_img = Utils.validate_params(sys.argv)
+
+    if move_img_bool:
+        print('\nA(s) imagem(s) de {} será(ão) movida(s) para {}\n'.format(
+            args_dict['-dirImgs'], DESTINY_RAPIDEYE
+        ))
+
+    if process_one_img:
+        process.make_processing_one_image(args_dict['-dirImgs'], move_img_bool)
+        sys.exit()
+
+    process.main(args_dict['-dirImgs'], move_img_bool)

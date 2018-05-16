@@ -8,14 +8,6 @@ import geojson
 from shapely.geometry import shape
 from osgeo import gdal
 
-"""
-- gerar apenas footprint
-python footprint.py -imgIn 2032526_2014-07-31_RE4_3A_315082_CR_r3g2b1.tif -footOut myfoot
-
-- gerar footprint e wkt
-python footprint.py -imgIn 2032526_2014-07-31_RE4_3A_315082_CR_r3g2b1.tif -footOut myfoot -wkt 1
-"""
-
 
 class MakeFootprint:
 
