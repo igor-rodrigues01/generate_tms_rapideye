@@ -21,8 +21,7 @@ class MakeFootprint:
         gdal.Warp(ds_reprojected, ds_path, dstSRS='EPSG:4674')
 
         ds_vrt = ds_reprojected.replace('.tif', '.vrt')
-        ds_vr2 = ds_reprojected.replace(ds_reprojected[:-4], '_2.vrt')
-        # -a_srs EPSG:4674
+        ds_vr2 = ds_reprojected.replace(ds_reprojected[-4:], '_2.vrt')
         command1 = "gdal_translate -b mask -of vrt -a_nodata 0 {} {}".format(ds_reprojected, ds_vrt)
         command2 = "gdal_translate -b 1 -of vrt -a_nodata 0 {} {}".format(ds_vrt, ds_vr2)
         command3 = 'gdal_polygonize.py -q -8 {} -b 1 -f "ESRI Shapefile" {}'.format(ds_vr2, shp_out_path)

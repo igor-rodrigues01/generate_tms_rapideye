@@ -16,6 +16,7 @@ from constants import (
     DESTINY_RAPIDEYE
 )
 from dao import DAO
+from threading import Thread
 
 
 class FileManager:
@@ -134,7 +135,7 @@ class FileManager:
         img_name = os.path.basename(abspath_dir_img)
         return img_name.split('_')[1]
 
-    def __make_processing(self, img_name, abspath_dir_img):
+    def __make_processing(self, img_name, abspath_dir_img, id_foot):
         """
         Method that call other methods to perform all the necessary
         processings in the imagery.
@@ -144,7 +145,7 @@ class FileManager:
         data['total_part'] = TOTAL_PART
         data['nuvens'] = self.get_cloud(abspath_dir_img)
         self.__make_tms(abspath_dir_img)
-        data['geom'] = self.__make_footprint(abspath_dir_img)
+        data['geom'] = self.__make_footprint(abspath_dir_img, shp_out=id_foot)
         abspath_rgb, img_name_rgb = self.__get_image_rgb(
             abspath_dir_img, img_name
         )
@@ -162,13 +163,48 @@ class FileManager:
         img_name = os.path.basename(abspath_image)
 
         if self.__check_tif_and_metadata(abspath_image):
-            data = self.__make_processing(img_name, abspath_image)
-            self.__dao.insert_catalog_rapideye(data)
+            try:
+                data = self.__make_processing(img_name, abspath_image)
+            except Exception as ex:
+                Log.error(
+                    '\nErro ao processar a imagem {} (Inserção '
+                    'em banco interrompida)\n{}\n'.format(abspath_image, ex)
+                )
+            else:
+                self.__dao.insert_catalog_rapideye(data)
+
+                if move_img_bool:
+                    Utils.move_dir(abspath_image, DESTINY_RAPIDEYE)
         else:
             sys.exit()
 
-        if move_img_bool:
-            Utils.move_dir(abspath_image, DESTINY_RAPIDEYE)
+    def __prepare_process_many_imgs(
+        self, path_4a_cobertura, img_name, move_img_bool, id_foot
+    ):
+        path_dir_img = os.path.join(
+            path_4a_cobertura, img_name.strip('\n')
+        )
+        if not os.path.exists(path_dir_img):
+            Log.error(' O diretório {} não existe.'.format(path_dir_img))
+            return None
+
+        abspath_dir_img = os.path.abspath(path_dir_img)
+
+        if self.__check_tif_and_metadata(abspath_dir_img):
+            try:
+                data = self.__make_processing(
+                    img_name.strip('\n'), abspath_dir_img, id_foot=id_foot
+                )
+            except Exception as ex:
+                Log.error(
+                    '\nErro ao processar a imagem {} (Inserção em'
+                    ' banco interrompida)\n{}\n'.format(path_dir_img, ex)
+                )
+            else:
+                self.__dao.insert_catalog_rapideye(data)
+
+                if move_img_bool:
+                    Utils.move_dir(abspath_dir_img, DESTINY_RAPIDEYE)
 
     def main(self, path_4a_cobertura, move_img_bool):
         """
@@ -179,25 +215,68 @@ class FileManager:
         to make insertion in the database.
         """
         all_rapideye = open(FILE_ALL_RAPIDEYE, 'r')
+        imgs = all_rapideye.readlines()
+        i = 0
 
-        for img_name in all_rapideye.readlines():
-            path_dir_img = os.path.join(
-                path_4a_cobertura, img_name.strip('\n')
-            )
-            if not os.path.exists(path_dir_img):
-                Log.error(' O diretório {} não existe.'.format(path_dir_img))
-                continue
+        while i <= len(imgs):
 
-            abspath_dir_img = os.path.abspath(path_dir_img)
+            t1 = Thread(target=self.__prepare_process_many_imgs,
+                args=[path_4a_cobertura, imgs[i], move_img_bool, 'foot_1'],
+                daemon=True)
+            t2 = Thread(target=self.__prepare_process_many_imgs,
+                args=[path_4a_cobertura, imgs[i + 1], move_img_bool, 'foot_2'],
+                daemon=True)
+            t3 = Thread(target=self.__prepare_process_many_imgs,
+                args=[path_4a_cobertura, imgs[i + 2], move_img_bool, 'foot_3'],
+                daemon=True)
+            t4 = Thread(target=self.__prepare_process_many_imgs,
+                args=[path_4a_cobertura, imgs[i + 3], move_img_bool, 'foot_1'],
+                daemon=True)
+            t5 = Thread(target=self.__prepare_process_many_imgs,
+                args=[path_4a_cobertura, imgs[i + 4], move_img_bool, 'foot_2'],
+                daemon=True)
+            t6 = Thread(target=self.__prepare_process_many_imgs,
+                args=[path_4a_cobertura, imgs[i + 5], move_img_bool, 'foot_3'],
+                daemon=True)
+            t7 = Thread(target=self.__prepare_process_many_imgs,
+                args=[path_4a_cobertura, imgs[i + 6], move_img_bool, 'foot_1'],
+                daemon=True)
+            t8 = Thread(target=self.__prepare_process_many_imgs,
+                args=[path_4a_cobertura, imgs[i + 7], move_img_bool, 'foot_2'],
+                daemon=True)
+            t9 = Thread(target=self.__prepare_process_many_imgs,
+                args=[path_4a_cobertura, imgs[i + 8], move_img_bool, 'foot_3'],
+                daemon=True)
+            t10 = Thread(target=self.__prepare_process_many_imgs,
+                args=[path_4a_cobertura, imgs[i + 9], move_img_bool, 'foot_1'],
+                daemon=True)
 
-            if self.__check_tif_and_metadata(abspath_dir_img):
-                data = self.__make_processing(
-                    img_name.strip('\n'), abspath_dir_img,
-                )
-                self.__dao.insert_catalog_rapideye(data)
+            t1.start()
+            t2.start()
+            t3.start()
+            t4.start()
+            t5.start()
+            t6.start()
+            t7.start()
+            t8.start()
+            t9.start()
+            t10.start()
 
-                if move_img_bool:
-                    Utils.move_dir(abspath_dir_img, DESTINY_RAPIDEYE)
+            t1.join()
+            t2.join()
+            t3.join()
+            t4.join()
+            t5.join()
+            t6.join()
+            t7.join()
+            t8.join()
+            t9.join()
+            t10.join()
+
+            if i == len(imgs) - 10:
+                break
+
+            i += 10
 
 
 if __name__ == '__main__':
