@@ -108,3 +108,9 @@ python footprint.py -imgIn /path/to/img.tif -footOut /path/to/result/my_foot -wk
 ```shell
 python generate_tms.py -imgPathIn /path/to/img.tif -br 3 -bg 5 -bb 2 -rgbPathOut /path/to/dir_rgb -zoomMin 2 -zoomMax 5 -link http://127.0.0.1/imgs -dirTms /path/to/dir_tms
 ```
+
+
+
+
+## Usar
+- Atualizar o constants.py

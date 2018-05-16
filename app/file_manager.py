@@ -13,7 +13,7 @@ from log import Log
 from constants import (
     OUTSIZE_RGB, FILE_ALL_RAPIDEYE, TOTAL_PART, BAND_R, BAND_G,
     BAND_B, DIR_PNG, DIR_TMS, ZOOM_MIN, ZOOM_MAX, URL_TMS, B52_PATH,
-    DESTINY_RAPIDEYE
+    DESTINY_RAPIDEYE, DIR_PNG_TO_DB
 )
 from dao import DAO
 from threading import Thread
@@ -126,7 +126,7 @@ class FileManager:
                 outsize, outsize, abspath_img_rgb, path_img_png
             )
         os.system(command)
-        return path_img_png
+        return os.path.join(DIR_PNG_TO_DB, img_png)
 
     def __get_date(self, abspath_dir_img):
         """
@@ -164,7 +164,9 @@ class FileManager:
 
         if self.__check_tif_and_metadata(abspath_image):
             try:
-                data = self.__make_processing(img_name, abspath_image)
+                data = self.__make_processing(
+                    img_name, abspath_image, 'foot_1'
+                )
             except Exception as ex:
                 Log.error(
                     '\nErro ao processar a imagem {} (Inserção '
