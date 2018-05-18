@@ -9,6 +9,7 @@ from generate_tms import GenerateTMS
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely import wkt
 from utils import Utils
+from validator import Validator
 from log import Log
 from constants import (
     OUTSIZE_RGB, FILE_ALL_RAPIDEYE, TOTAL_PART, BAND_R, BAND_G,
@@ -17,35 +18,21 @@ from constants import (
 )
 from dao import DAO
 from threading import Thread
+from datetime import datetime
+
+"""
+Possible Params:
+    -thr
+    -oneImg
+    -dirImgs
+    -move
+"""
 
 
 class FileManager:
 
     def __init__(self):
         self.__dao = DAO()
-
-    def __check_tif_and_metadata(self, abspath_image):
-        """
-        Method that check the existence of the useful files to processing.
-        Are checked (image.tif) and the metadatas from image
-        (image_metadata.xml).
-        """
-        tif = Utils.get_file(abspath_image, is_tif=True)
-        metadata = Utils.get_file(abspath_image, is_metadata=True)
-
-        if tif is False:
-            Log.error(
-                'O diretório {} está sem .tif.'.format(abspath_image)
-            )
-            return False
-
-        if metadata is False:
-            Log.error(
-                'O diretório {} está sem metadados.'.format(abspath_image)
-            )
-            return False
-
-        return True
 
     def get_cloud(self, abspath_dir_img):
         """
@@ -162,7 +149,7 @@ class FileManager:
         abspath_image = abspath_image.rstrip('/')
         img_name = os.path.basename(abspath_image)
 
-        if self.__check_tif_and_metadata(abspath_image):
+        if Utils.check_tif_and_metadata(abspath_image):
             try:
                 data = self.__make_processing(
                     img_name, abspath_image, 'foot_1'
@@ -183,6 +170,8 @@ class FileManager:
     def __prepare_process_many_imgs(
         self, path_4a_cobertura, img_name, move_img_bool, id_foot
     ):
+        """
+        """
         path_dir_img = os.path.join(
             path_4a_cobertura, img_name.strip('\n')
         )
@@ -192,7 +181,7 @@ class FileManager:
 
         abspath_dir_img = os.path.abspath(path_dir_img)
 
-        if self.__check_tif_and_metadata(abspath_dir_img):
+        if Utils.check_tif_and_metadata(abspath_dir_img):
             try:
                 data = self.__make_processing(
                     img_name.strip('\n'), abspath_dir_img, id_foot=id_foot
@@ -208,7 +197,7 @@ class FileManager:
                 if move_img_bool:
                     Utils.move_dir(abspath_dir_img, DESTINY_RAPIDEYE)
 
-    def main(self, path_4a_cobertura, move_img_bool):
+    def main(self, path_4a_cobertura, move_img_bool, process_with_thread):
         """
         This is main method that will iterate in the file with all the names of
         the rapideye (all_rapideye.txt) imagery and will call the processing
@@ -220,79 +209,110 @@ class FileManager:
         imgs = all_rapideye.readlines()
         i = 0
 
-        while i <= len(imgs):
+        if process_with_thread:
 
-            t1 = Thread(target=self.__prepare_process_many_imgs,
-                args=[path_4a_cobertura, imgs[i], move_img_bool, 'foot_1'],
-                daemon=True)
-            t2 = Thread(target=self.__prepare_process_many_imgs,
-                args=[path_4a_cobertura, imgs[i + 1], move_img_bool, 'foot_2'],
-                daemon=True)
-            t3 = Thread(target=self.__prepare_process_many_imgs,
-                args=[path_4a_cobertura, imgs[i + 2], move_img_bool, 'foot_3'],
-                daemon=True)
-            t4 = Thread(target=self.__prepare_process_many_imgs,
-                args=[path_4a_cobertura, imgs[i + 3], move_img_bool, 'foot_1'],
-                daemon=True)
-            t5 = Thread(target=self.__prepare_process_many_imgs,
-                args=[path_4a_cobertura, imgs[i + 4], move_img_bool, 'foot_2'],
-                daemon=True)
-            t6 = Thread(target=self.__prepare_process_many_imgs,
-                args=[path_4a_cobertura, imgs[i + 5], move_img_bool, 'foot_3'],
-                daemon=True)
-            t7 = Thread(target=self.__prepare_process_many_imgs,
-                args=[path_4a_cobertura, imgs[i + 6], move_img_bool, 'foot_1'],
-                daemon=True)
-            t8 = Thread(target=self.__prepare_process_many_imgs,
-                args=[path_4a_cobertura, imgs[i + 7], move_img_bool, 'foot_2'],
-                daemon=True)
-            t9 = Thread(target=self.__prepare_process_many_imgs,
-                args=[path_4a_cobertura, imgs[i + 8], move_img_bool, 'foot_3'],
-                daemon=True)
-            t10 = Thread(target=self.__prepare_process_many_imgs,
-                args=[path_4a_cobertura, imgs[i + 9], move_img_bool, 'foot_1'],
-                daemon=True)
+            while i <= len(imgs):
+                i += 1
 
-            t1.start()
-            t2.start()
-            t3.start()
-            t4.start()
-            t5.start()
-            t6.start()
-            t7.start()
-            t8.start()
-            t9.start()
-            t10.start()
+        else:
+            while i <= len(imgs):
+                self.__prepare_process_many_imgs(
+                    path_4a_cobertura, imgs[i], move_img_bool, 'foot_1'
+                )
+                i += 1
 
-            t1.join()
-            t2.join()
-            t3.join()
-            t4.join()
-            t5.join()
-            t6.join()
-            t7.join()
-            t8.join()
-            t9.join()
-            t10.join()
+        # while i <= len(imgs):
 
-            if i == len(imgs) - 10:
-                break
+        #     t1 = Thread(target=self.__prepare_process_many_imgs,
+        #         args=[path_4a_cobertura, imgs[i], move_img_bool, 'foot_1'],
+        #         daemon=True)
+        #     t2 = Thread(target=self.__prepare_process_many_imgs,
+        #         args=[path_4a_cobertura, imgs[i + 1], move_img_bool, 'foot_2'],
+        #         daemon=True)
+        #     t3 = Thread(target=self.__prepare_process_many_imgs,
+        #         args=[path_4a_cobertura, imgs[i + 2], move_img_bool, 'foot_3'],
+        #         daemon=True)
+        #     t4 = Thread(target=self.__prepare_process_many_imgs,
+        #         args=[path_4a_cobertura, imgs[i + 3], move_img_bool, 'foot_4'],
+        #         daemon=True)
+        #     t5 = Thread(target=self.__prepare_process_many_imgs,
+        #         args=[path_4a_cobertura, imgs[i + 4], move_img_bool, 'foot_5'],
+        #         daemon=True)
+        #     t6 = Thread(target=self.__prepare_process_many_imgs,
+        #         args=[path_4a_cobertura, imgs[i + 5], move_img_bool, 'foot_6'],
+        #         daemon=True)
+        #     t7 = Thread(target=self.__prepare_process_many_imgs,
+        #         args=[path_4a_cobertura, imgs[i + 6], move_img_bool, 'foot_7'],
+        #         daemon=True)
+        #     t8 = Thread(target=self.__prepare_process_many_imgs,
+        #         args=[path_4a_cobertura, imgs[i + 7], move_img_bool, 'foot_8'],
+        #         daemon=True)
+        #     t9 = Thread(target=self.__prepare_process_many_imgs,
+        #         args=[path_4a_cobertura, imgs[i + 8], move_img_bool, 'foot_9'],
+        #         daemon=True)
+        #     t10 = Thread(target=self.__prepare_process_many_imgs,
+        #         args=[path_4a_cobertura, imgs[i + 9], move_img_bool, 'foot_10'],
+        #         daemon=True)
 
-            i += 10
+        #     t1.start()
+        #     t2.start()
+        #     t3.start()
+        #     t4.start()
+        #     t5.start()
+        #     t6.start()
+        #     t7.start()
+        #     t8.start()
+        #     t9.start()
+        #     t10.start()
+
+        #     t1.join()
+        #     t2.join()
+        #     t3.join()
+        #     t4.join()
+        #     t5.join()
+        #     t6.join()
+        #     t7.join()
+        #     t8.join()
+        #     t9.join()
+        #     t10.join()
+
+        #     if i == len(imgs) - 10:
+        #         break
+
+        #     i += 10
 
 
 if __name__ == '__main__':
     process = FileManager()
+    start_execution_time = datetime.now().replace(microsecond=0)
 
-    args_dict, move_img_bool, process_one_img = Utils.validate_params(sys.argv)
+    args, move_img_bool, process_one_img_bool, process_with_thread = \
+        Validator.validate_params(
+            sys.argv
+        )
 
     if move_img_bool:
         print('\nA(s) imagem(s) de {} será(ão) movida(s) para {}\n'.format(
-            args_dict['-dirImgs'], DESTINY_RAPIDEYE
+            args['-dirImgs'], DESTINY_RAPIDEYE
         ))
 
-    if process_one_img:
-        process.make_processing_one_image(args_dict['-dirImgs'], move_img_bool)
+    # Processing one image
+    if process_one_img_bool:
+        process.make_processing_one_image(
+            args['-dirImgs'], move_img_bool
+        )
+        Log.success(
+            'O tempo gasto para o processamento desta imagem foi de {}'.format(
+                start_execution_time - datetime.now().replace(microsecond=0)
+            )
+        )
         sys.exit()
 
-    process.main(args_dict['-dirImgs'], move_img_bool)
+    # Processing many imagery
+    process.main(args['-dirImgs'], move_img_bool, process_with_thread)
+
+    Log.success(
+        'O tempo gasto para o processamento desta imagem foi de {}'.format(
+            start_execution_time - datetime.now().replace(microsecond=0)
+        )
+    )

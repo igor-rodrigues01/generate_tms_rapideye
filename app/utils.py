@@ -3,29 +3,17 @@
 import os
 import shutil
 from log import Log
-import sys
 
-
-KEYS_DEFAULT_AS_SET = set(
-    [
-        '-dirImgs', '-oneImg', '-move'
-    ]
-)
+"""
+Possible Params:
+    -thr
+    -oneImg
+    -dirImgs
+    -move
+"""
 
 
 class Utils:
-
-    @staticmethod
-    def make_params(args):
-        """Method that reorganize the entry params of command line"""
-        data = {}
-        for i in range(len(args)):
-            if i == 0:  # saltando a primeira iteracao pra
-                # saltar o parametro que é o nome do arquivo de execução
-                continue
-            if not i % 2 == 0:
-                data[args[i]] = args[i + 1]
-        return data
 
     @staticmethod
     def get_suffix_tif(img):
@@ -84,38 +72,25 @@ class Utils:
             ))
 
     @classmethod
-    def check_args(cls, args_dict):
-        process_one_img = False
-        move_img = False
+    def check_tif_and_metadata(cls, abspath_image):
+        """
+        Method that check the existence of the useful files to processing.
+        Are checked (image.tif) and the metadatas from image
+        (image_metadata.xml).
+        """
+        tif = cls.get_file(abspath_image, is_tif=True)
+        metadata = cls.get_file(abspath_image, is_metadata=True)
 
-        if '-dirImgs' in args_dict.keys():
-            if not os.path.exists(args_dict['-dirImgs']):
-                sys.exit('O diretório {} não existe'.format(
-                    args_dict['-dirImgs']
-                ))
-        else:
-            sys.exit('O parâmetro -dirImgs não existe')
-
-        if '-move' in args_dict.keys():
-            if args_dict['-move'] != '1':
-                sys.exit('O valor do parâmetro -move deve ser 1')
-            move_img = True
-
-        if '-oneImg' in args_dict.keys():
-            if args_dict['-oneImg'] != '1':
-                sys.exit('O valor do parâmetro -oneImg deve ser 1')
-            process_one_img = True
-
-        return args_dict, move_img, process_one_img
-
-    @classmethod
-    def validate_params(cls, args):
-        if not (len(args) == 3 or len(args) == 5 or len(args) == 7):
-            sys.exit(
-                'Execute o script passando o caminho do diretório de'
-                ' imagens da 4ª cobertura , ou apenas o path de um'
-                'imagem o decidindo se deseja mover ou não'
+        if tif is False:
+            Log.error(
+                'O diretório {} está sem .tif.'.format(abspath_image)
             )
+            return False
 
-        args_dict = Utils.make_params(args)
-        return cls.check_args(args_dict)
+        if metadata is False:
+            Log.error(
+                'O diretório {} está sem metadados.'.format(abspath_image)
+            )
+            return False
+
+        return True

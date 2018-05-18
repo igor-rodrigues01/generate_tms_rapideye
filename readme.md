@@ -1,6 +1,30 @@
 # Script para Geração de TMS de Imagens Rapideye
 
+## Sumário
+- [Objetivo](#objetivo)
+- [Pré requisitos de sistema](#pre-requisitos-do-sistema)
+- [Pré requisitos do script](#pre-requisitos-do-script)
+- [Funionamento do script completo](#foo)
+- [Funcionamento do script *footprint.py*](#foo)
+- [Funcionionamento do script generate_tms.py](###Funcionionamento do script generate_tms.py)
+- [Arquivo de configurações](#arquivo-de-configuracoes)
+- [Passo a passo do script completo](#passo-a-passo-do-script-completo)
+- [Modelo de atributos em banco](#foo)
+
 <br/>
+<br/>
+## Objetivo
+
+- Este script tem como objetivo gerar TMS's de imagens rapideye e salva-las em banco.
+- Esta ferramenta funciona com todas as suas fucionalidades ao utilizar o arquivo **file_manager.py**.
+Se preferir utilizar suas funcionalidades de forma isolada, basta utilizar os scripts **footprint.py** e/ou **generate_tms.py**.
+
+> #### Nota
+> O footprint gerado é baseado em um VRT mascarado, logo, caso a imagem esteja corrompida, isso será ignorado e o footprint será gerado normalmente.
+>
+
+<br/>
+
 ## Pré Requisitos de Sistema
 - Instalar gdal >= 2.x
 - Instalar dans-gdal-scripts
@@ -15,19 +39,10 @@
 ```shell
 pip install -r requirements.txt
 ```
+> #### Nota
+>- Este ambiente virtual deve possuir a lib gdal disponível para o python35 e python 27
 
 -------------
-<br/>
-## Funcionamento
-
-- Este script tem como objetivo gerar TMS's de imagens rapideye e salva-las em banco.
-- Esta ferramenta funciona com todas as suas fucionalidades ao utilizar o arquivo **file_manager.py**
-ou funciona de forma isolada com os script **footprint.py** ou **generate_tms.py**.
-
-> #### Nota
-> O footprint gerado é baseado em um VRT mascarado, logo, caso a imagem esteja corrompida isso será ignorado e o footprint será gerado normalmente.
->
-
 <br/>
 
 ### Funcionamento do script completo (utilizando file_manage.py):
@@ -63,7 +78,7 @@ python file_manager.py -dirImgs /path/to/rapideye/4a_cobertura/
 python file_manager.py -dirImgs /path/to/rapideye/4a_cobertura/ -move 1
 ```
 
-- Processameto apenas uma imagem
+- Processameto de apenas uma imagem
 ```shell
 python file_manager.py -dirImgs /path/to/dir_img/ -oneImg 1
 ```
@@ -109,8 +124,52 @@ python footprint.py -imgIn /path/to/img.tif -footOut /path/to/result/my_foot -wk
 python generate_tms.py -imgPathIn /path/to/img.tif -br 3 -bg 5 -bb 2 -rgbPathOut /path/to/dir_rgb -zoomMin 2 -zoomMax 5 -link http://127.0.0.1/imgs -dirTms /path/to/dir_tms
 ```
 
+## Arquivo de configurações
+> **DESTINY_RAPIDEYE** - Diretório de destino para onde as imagens serã movidas **<'/home/user/'>**
+<br/>
+> **TOTAL_PART** - Valor estático para precher o campo *total_part* da tabela. Este valor é estático pois, a geração de footprint será baseado em um .vrt mascarado, logo, qualquer falha nos pixels da imagem será ignorado e a poligonização será gerada normalmente. **<1>**
+<br/>
+> **FILE_ALL_RAPIDEYE** - Path de arquivo com todas as imagens a serem processada. É aconselhado que seja passa apenas um arquivo com um lote de imagens por vez. **<"/home/user/lotes/lote_1.txt">**
+<br/>
+> **OUTSIZE_RGB** - ???? <10>
+<br/>
+> B52_PATH = '\\\\10.1.25.66\\b52_imagens\\rapideye\\'
+<br/>
+> **DIR_PNG** - Path do diretório que serão gerados os PNG's. **<"/home/user/png">**
+<br/>
+> **DIR_PNG_TO_DB** - Path do png que será inserido em banco (é útil para pontos de montagens). **<<span>http:<span>//10.1.25.x/imagens/png/>**
+<br/>
+> **DIR_TMS** = Path do diretório que serão gerados os TMS's. **<"/home/user/tms">**
+<br/>
+> **URL_TMS** = "http://10.1.8.69/TMS-TESTE"
+<br/>
+> **ZOOM_MIN** = 2
+<br/>
+> ZOOM_MAX = 10
+<br/>
+> BAND_R = 3
+<br/>
+> BAND_G = 5
+<br/>
+> BAND_B = 2
+<br/>
+<br/>
+> Dados de Conexão com Banco
+<br/>
+<br/>
+> **HOSTADDR** = '127.0.0.1'
+<br/>
+> USER = 'postgres'
+<br/>
+> PASSWORD = '123456'
+<br/>
+> DATABASE = 'my_siscom'
+<br/>
+> SCHEMA = 'ibama'
+<br/>
+> TABLENAME_RAPIDEYE_CATALOG = 'img_catalogo_rapideye_a'
 
 
-
-## Usar
+<br/>
+## Passo a Passo do Script Completo
 - Atualizar o constants.py

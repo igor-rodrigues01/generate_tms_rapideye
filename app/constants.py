@@ -40,4 +40,3 @@ ZOOM_MAX = 10
 BAND_R = 3
 BAND_G = 5
 BAND_B = 2
-FINAL_FILE_LOTE = 'lote_20.txt'
