@@ -1,9 +1,9 @@
 #!-*-cofding:utf-8-*-
 
 import os
+import sys
 import shutil
 from log import Log
-
 """
 Possible Params:
     -thr
@@ -54,7 +54,7 @@ class Utils:
         return os.path.join(abspath_dir_img, file_result)
 
     @classmethod
-    def move_dir(cls, abspath_src, abspath_destiny):
+    def move_dir(cls, abspath_src, abspath_destiny, log_obj):
         """
         Method that will move the image to a destiny directory
         """
@@ -67,12 +67,14 @@ class Utils:
                 abspath_src, os.path.join(abspath_destiny, img_name)
             )
         except Exception as ex:
-            Log.error('Erro ao mover a imagem de {} para {}\n{}'.format(
+            log_obj.error('Erro ao mover a imagem de {} para {}\n{}'.format(
                 abspath_src, abspath_destiny, ex
             ))
 
     @classmethod
-    def check_tif_and_metadata(cls, abspath_image):
+    def check_tif_and_metadata(
+        cls, abspath_image, log_obj=None, is_validator=False
+    ):
         """
         Method that check the existence of the useful files to processing.
         Are checked (image.tif) and the metadatas from image
@@ -80,17 +82,25 @@ class Utils:
         """
         tif = cls.get_file(abspath_image, is_tif=True)
         metadata = cls.get_file(abspath_image, is_metadata=True)
+        msg_error_tif = 'O diretório {} está sem .tif.'.format(abspath_image)
+        msg_error_metadata = 'O diretório {} está sem metadados.'.format(
+            abspath_image
+        )
+
+        # if necessary to validation in validator.py file
+        if is_validator:
+            if tif is not False or metadata is not False:
+                return True
+            else:
+                return False
+        # =====
 
         if tif is False:
-            Log.error(
-                'O diretório {} está sem .tif.'.format(abspath_image)
-            )
+            log_obj.error(msg_error_tif)
             return False
 
         if metadata is False:
-            Log.error(
-                'O diretório {} está sem metadados.'.format(abspath_image)
-            )
+            log_obj.error(msg_error_metadata)
             return False
 
         return True

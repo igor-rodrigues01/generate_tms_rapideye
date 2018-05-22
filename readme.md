@@ -131,9 +131,9 @@ python generate_tms.py -imgPathIn /path/to/img.tif -br 3 -bg 5 -bb 2 -rgbPathOut
 <br/>
 > **FILE_ALL_RAPIDEYE** - Path de arquivo com todas as imagens a serem processada. É aconselhado que seja passa apenas um arquivo com um lote de imagens por vez. **<"/home/user/lotes/lote_1.txt">**
 <br/>
-> **OUTSIZE_RGB** - ???? <10>
+> **OUTSIZE_RGB** - Percentual da resolução de saída da imagem  <**10**>
 <br/>
-> B52_PATH = '\\\\10.1.25.66\\b52_imagens\\rapideye\\'
+> **B52_PATH** = Path para o ponto de montagem do b52 <**\\\\10.1.25.66\\b52_imagens\\rapideye\\**>
 <br/>
 > **DIR_PNG** - Path do diretório que serão gerados os PNG's. **<"/home/user/png">**
 <br/>
@@ -143,33 +143,28 @@ python generate_tms.py -imgPathIn /path/to/img.tif -br 3 -bg 5 -bb 2 -rgbPathOut
 <br/>
 > **URL_TMS** = "http://10.1.8.69/TMS-TESTE"
 <br/>
-> **ZOOM_MIN** = 2
+> **ZOOM_MIN** = Valor mínimo de zoom para o TMS <**2**>
 <br/>
-> ZOOM_MAX = 10
+> **ZOOM_MAX** = Valor máximo de zoom para o TMS <**10**>
 <br/>
-> BAND_R = 3
+> **BAND_R** = Banda Red <**3**>
 <br/>
-> BAND_G = 5
+> **BAND_G** = Banda Green <**5**>
 <br/>
-> BAND_B = 2
+> **BAND_B** = Banda Blue <**2**>
 <br/>
 <br/>
 > Dados de Conexão com Banco
 <br/>
 <br/>
-> **HOSTADDR** = '127.0.0.1'
+> **HOSTADDR** = Ip do servidor da base de dados <**10.1.8.X**>
 <br/>
-> USER = 'postgres'
+> **USER** = Usuário para acesso a base de dados <**postgres**>
 <br/>
-> PASSWORD = '123456'
+> **PASSWORD** = Senha para acesso a base de dados <**123456**>
 <br/>
-> DATABASE = 'my_siscom'
+> **DATABASE** = Nome da base de dados <**my_siscom**>
 <br/>
-> SCHEMA = 'ibama'
+> **SCHEMA** = Schema para a tabela <**ibama**>
 <br/>
-> TABLENAME_RAPIDEYE_CATALOG = 'img_catalogo_rapideye_a'
-
-
-<br/>
-## Passo a Passo do Script Completo
-- Atualizar o constants.py
+> **TABLENAME_RAPIDEYE_CATALOG** = Tabela de imagens rapideye <**img_catalogo_rapideye_a**>

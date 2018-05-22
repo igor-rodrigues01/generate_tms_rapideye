@@ -5,14 +5,15 @@ import sys
 from utils import Utils
 
 
-KEYS_DEFAULT_AS_SET = set(['-thr', '-oneImg', '-dirImgs', '-move'])
+KEYS_DEFAULT_AS_SET = {'-thr', '-oneImg', '-dirImgs', '-move'}
 
 
 class Validator:
 
     @classmethod
-    def __validate_dir_imgs(cls, args_dict):
+    def __validate_dir_imgs(cls, args_dict, process_one_img):
         """
+        Method that validate the -dirImgs params
         """
         if '-dirImgs' in args_dict.keys():
             args_dict['-dirImgs'] = args_dict['-dirImgs'].rstrip('/')
@@ -21,18 +22,21 @@ class Validator:
                 sys.exit('O diretório {} não existe'.format(
                     args_dict['-dirImgs']
                 ))
-            else:
-                if Utils.check_tif_and_metadata(args_dict['-dirImgs']) is True:
-                    sys.exit(
-                        'Você passou o diretório de uma imagem para ser'
-                        ' processada em lote pra o parâmetro -dirImgs '
-                    )
+            if not process_one_img and \
+               Utils.check_tif_and_metadata(
+                   args_dict['-dirImgs'], is_validator=True
+               ):
+                sys.exit(
+                    'Para processar apenas uma imagem passe o parâmetro'
+                    ' "-oneImg 1"'
+                )
         else:
             sys.exit('O parâmetro -dirImgs não existe')
 
     @classmethod
     def __check_args(cls, args_dict):
         """
+        Method that accomplish the verification of the entry parameters
         """
         process_one_img = False
         move_img = False
@@ -60,8 +64,8 @@ class Validator:
             if args_dict['-oneImg'] != '1':
                 sys.exit('O valor do parâmetro -oneImg deve ser 1')
             process_one_img = True
-        else:
-            cls.__validate_dir_imgs(args_dict)
+
+        cls.__validate_dir_imgs(args_dict, process_one_img)
 
         return args_dict, move_img, process_one_img, process_with_thread
 
@@ -80,6 +84,7 @@ class Validator:
     @classmethod
     def validate_params(cls, args):
         """
+        Method that call other methods to make the entry parameters validations
         """
         if not (len(args) == 3 or len(args) == 5 or len(args) == 7):
             sys.exit(

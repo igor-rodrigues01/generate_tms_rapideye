@@ -2,10 +2,10 @@
 import sys
 import psycopg2
 
-from log import Log
 from constants import (
     HOSTADDR, USER, PASSWORD, DATABASE, SCHEMA, TABLENAME_RAPIDEYE_CATALOG
 )
+from datetime import datetime
 
 
 class DAO:
@@ -14,8 +14,9 @@ class DAO:
 
     def __init__(
         self, host=HOSTADDR, db=DATABASE, user=USER,
-        passwd=PASSWORD
+        passwd=PASSWORD, log=None
     ):
+        self.__log = log
         self.__connection(host, db, user, passwd)
 
     def __connection(self, host, db, user, passwd):
@@ -48,19 +49,22 @@ class DAO:
         return sql_fields + sql_values
 
     def insert_catalog_rapideye(
-        self, data_dict=None, table_name=TABLENAME_RAPIDEYE_CATALOG
+        self, data_dict=None, table_name=TABLENAME_RAPIDEYE_CATALOG,
+        start_time=datetime.now().replace(microsecond=0)
     ):
         """
         Method that insert data in the database
         """
         sql = self.__create_sql(data_dict)
         cursor = self.__conn.cursor()
+        end_time = None
+
         try:
             cursor.execute(sql)
 
         except Exception as ex:
             self.__conn.rollback()
-            Log.error(
+            self.__log.error(
                 '{}\nA imagem {} foi processada mas seus dados"\
                 " não foram inseridos no banco.'.format(
                     ex, data_dict['path']
@@ -68,6 +72,9 @@ class DAO:
             )
         else:
             self.__conn.commit()
-            Log.success('Imagem {} foi inserida com sucesso.'.format(
-                data_dict['path']
-            ))
+            end_time = datetime.now().replace(microsecond=0)
+            self.__log.success(
+                'Imagem {} foi inserida com sucesso. Tempo gasto: {}'.format(
+                    data_dict['path'], end_time - start_time
+                )
+            )

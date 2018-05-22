@@ -17,7 +17,7 @@
 DESTINY_RAPIDEYE = '/home/igor/'
 
 TOTAL_PART = 1
-FILE_ALL_RAPIDEYE = "/home/igor/projects/new-tms-rapideye/generate_lote/all_rapideye.txt"
+FILE_ALL_RAPIDEYE = "/home/igor/projects/new-tms-rapideye/generate_lote/files/lote_teste.txt"
 OUTSIZE_RGB = 10
 
 # CONNECTION DATA
