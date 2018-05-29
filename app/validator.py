@@ -88,9 +88,9 @@ class Validator:
         """
         if not (len(args) == 3 or len(args) == 5 or len(args) == 7):
             sys.exit(
-                'Execute o script passando o caminho do diretório de'
-                ' imagens da 4ª cobertura , ou apenas o path de uma'
-                'imagem e decida se deseja mover ou não'
+                'Execute o script passando o caminho do diretório das'
+                ' imagens, ou apenas o path de uma imagem e decida se'
+                ' deseja mover ou não'
             )
         args_dict = cls.__make_params(args)
         keys_args_set = set(args_dict.keys())

@@ -1,11 +1,10 @@
 #!-*-coding:utf-8-*-
 import numpy as np
-from process_thread import ProcessThread
+from threader import Threader
 
 ALL_THREADS = [
-    ProcessThread, ProcessThread, ProcessThread, ProcessThread,
-    ProcessThread, ProcessThread, ProcessThread, ProcessThread,
-    ProcessThread, ProcessThread
+    Threader, Threader, Threader, Threader, Threader,
+    Threader, Threader, Threader, Threader, Threader
 ]
 
 
@@ -69,7 +68,7 @@ class PrepareThreads:
         for img in lot_imgs:
             args_callback['id_foot'] = 'foot{}'.format(i)
             args_callback['img_name'] = img
-            thrd = ProcessThread(callback, **args_callback)
+            thrd = Threader(callback, **args_callback)
             thrd.start()
             thrds_in_running.append(thrd)
             i += 1
